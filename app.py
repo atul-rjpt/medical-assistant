@@ -6,7 +6,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
-from langchain.chains import RetrievalQA
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
 from langchain.prompts import PromptTemplate
 import tempfile
 import time
@@ -114,10 +115,10 @@ CONTEXT FROM MEDICAL DOCUMENTS:
 {context}
 
 ---
-QUESTION: {question}
+QUESTION: {input}
 
 ANSWER (strictly based on uploaded documents):""",
-    input_variables=["context", "question"]
+    input_variables=["context", "input"]
 )
 
 # ─────────────────────────────────────────────
@@ -249,13 +250,8 @@ if process_btn:
                     search_type="similarity",
                     search_kwargs={"k": top_k_docs}
                 )
-                qa_chain = RetrievalQA.from_chain_type(
-                    llm=llm,
-                    chain_type="stuff",
-                    retriever=retriever,
-                    chain_type_kwargs={"prompt": MEDICAL_PROMPT},
-                    return_source_documents=True
-                )
+                combine_docs_chain = create_stuff_documents_chain(llm, MEDICAL_PROMPT)
+                qa_chain = create_retrieval_chain(retriever, combine_docs_chain)
                 st.session_state.qa_chain = qa_chain
                 st.session_state.processed = True
                 st.session_state.doc_stats = {
@@ -328,9 +324,9 @@ if user_input := st.chat_input(placeholder, disabled=not st.session_state.proces
     with st.chat_message("assistant", avatar="🏥"):
         with st.spinner("🔍 Searching medical records..."):
             try:
-                result      = st.session_state.qa_chain.invoke({"query": user_input})
-                answer      = result["result"]
-                source_docs = result.get("source_documents", [])
+                result      = st.session_state.qa_chain.invoke({"input": user_input})
+                answer      = result["answer"]
+                source_docs = result.get("context", [])
 
                 st.markdown(answer)
 
