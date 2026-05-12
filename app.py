@@ -70,7 +70,7 @@ with st.sidebar:
     groq_api_key = st.text_input("🔑 Groq API Key", type="password", value=default_key, help="Free at console.groq.com")
     st.markdown("---")
     st.markdown("## 🤖 Model Settings")
-    model_choice = st.selectbox("LLM Model", ["deepseek-r1-distill-llama-70b","llama-3.3-70b-versatile","mixtral-8x7b-32768","gemma2-9b-it"])
+    model_choice = st.selectbox("LLM Model", ["llama-3.3-70b-versatile","llama-3.1-8b-instant","gemma2-9b-it","compund-beta"])
     temperature  = st.slider("Temperature", 0.0, 1.0, 0.05, 0.05)
     top_k_docs   = st.slider("Retrieved Chunks (k)", 2, 8, 4)
     st.markdown("---")
